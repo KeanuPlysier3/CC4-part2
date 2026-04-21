@@ -1,0 +1,75 @@
+@keyframes pulse-opacity {
+    0% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.5;
+    }
+}
+
+
+
+
+:root {
+    --color-orange: #FF9960;
+    --color-blue: #0EAFDC;
+    --color-red: #FE2E44;
+    --color-grey-trans: #090909;
+    --color-yellow: #FABD2D;
+    --color-yellow-bright: #F2D801;
+    --color-bg: #F5EFE1;
+    --color-purple: #AA14F0;
+    --color-white: white;
+    --color-black: black;
+    --color-black-trans: rgba(0, 0, 0, 0.834);
+    --color-light-black: rgb(70, 70, 70);
+
+    --fontsize-xs: 0.75rem;
+    /* 12px - nav items */
+    --fontsize-s: 1rem;
+    /* 16px - bodycopy */
+    --fontsize-m: 1.5rem;
+    /* 24px - intro, data description */
+    --fontsize-l: 3rem;
+    /* 48px - subtitle */
+    --fontsize-xl: 4rem;
+    /* 64px - main title */
+    --whitespace-xs: 0.5rem;
+    --whitespace-s: 1rem;
+    --whitespace-base: 1.5rem;
+    --whitespace-l: 2rem;
+    --whitespace-xl: 2.5rem;
+    --whitespace-xxl: 5rem;
+    /* 80px - top and bottom at sections */
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+html {
+    box-sizing: border-box;
+    height: 100%
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}

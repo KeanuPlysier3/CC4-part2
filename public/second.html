@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arduino Web Serial Potmeter</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #potmeterDisplay {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+    .values {
+      padding: 8px;
+      margin: 5px 0;
+      background-color: white;
+      border-left: 3px solid #007bff;
+      font-family: monospace;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .status.connected {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status.disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .slider-group {
+      margin-bottom: 20px;
+    }
+    .slider-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .slider-group input[type="range"] {
+      width: 100%;
+      height: 15px;
+      border-radius: 8px;
+      appearance: none;
+      background: #ddd;
+      outline: none;
+    }
+    .slider-group input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    #r::-webkit-slider-thumb { background: #dc3545; }
+    #g::-webkit-slider-thumb { background: #28a745; }
+    #b::-webkit-slider-thumb { background: #007bff; }
+    .slider-value {
+      text-align: right;
+      font-family: monospace;
+      font-size: 14px;
+      color: #666;
+    }
+    .color-preview {
+      width: 100%;
+      height: 80px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 2px solid #ccc;
+      transition: background-color 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Web Serial Potmeter</h1>
+    <div id="not-supported">
+      <p>⚠️ Web Serial is not supported in this browser.</p>
+      <p>Please use Chrome or Edge on desktop.</p>
+    </div>
+    <div id="supported">
+      <div id="not-connected">
+        <button id="connectButton">Connect to Serial Device</button>
+        <p class="status disconnected">Not connected</p>
+      </div>
+      <div id="connected">
+        <button id="disconnectButton">Disconnect</button>
+        <p class="status connected">✓ Connected to Arduino</p>
+        <h3>Potmeter Value (Arduino → Web):</h3>
+        <div id="potmeterDisplay">
+          <div id="potmeterValues" class="values">
+            <p><em>Waiting for data...</em></p>
+          </div>
+        </div>
+        <h3>RGB LED Control (Web → Arduino):</h3>
+        <div class="section">
+          <div class="slider-group">
+            <label for="r">Red</label>
+            <input type="range" min="0" max="255" value="0" id="r">
+            <div class="slider-value" id="rValue">0</div>
+          </div>
+          <div class="slider-group">
+            <label for="g">Green</label>
+            <input type="range" min="0" max="255" value="0" id="g">
+            <div class="slider-value" id="gValue">0</div>
+          </div>
+          <div class="slider-group">
+            <label for="b">Blue</label>
+            <input type="range" min="0" max="255" value="0" id="b">
+            <div class="slider-value" id="bValue">0</div>
+          </div>
+          <div id="colorPreview" class="color-preview" style="background-color: rgb(0, 0, 0);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+
+    import { WebSerial } from './js/serial.js';
+
+    const $notSupported = document.getElementById("not-supported");
+    const $supported = document.getElementById("supported");
+    const $notConnected = document.getElementById("not-connected");
+    const $connected = document.getElementById("connected");
+
+    const $connectButton = document.getElementById("connectButton");
+    const $disconnectButton = document.getElementById("disconnectButton");
+    const $potmeterValues = document.getElementById("potmeterValues");
+
+    const $r = document.getElementById("r");
+    const $g = document.getElementById("g");
+    const $b = document.getElementById("b");
+    const $rValue = document.getElementById("rValue");
+    const $gValue = document.getElementById("gValue");
+    const $bValue = document.getElementById("bValue");
+    const $colorPreview = document.getElementById("colorPreview");
+
+    const serial = new WebSerial({
+      usbVendorId: 6790,
+      usbProductId: 21971,
+      baudRate: 115200,
+      autoConnect: true,
+      autoReconnect: true,
+    });
+
+    const init = async () => {
+      displaySupportedState();
+      if (!serial.isSupported) return;
+      displayConnectionState();
+
+      serial.addEventListener("connect", () => {
+        displayConnectionState();
+      });
+
+      serial.addEventListener("disconnect", () => {
+        displayConnectionState();
+      });
+
+      serial.addEventListener('data', (e) => {
+        const line = e.detail.data;
+        try {
+          const json = JSON.parse(line);
+          if (json.sensor === "potmeter") {
+            updateDisplay(json.data[0]);
+          }
+        } catch (err) {
+          console.log('Received raw:', line);
+        }
+      });
+
+      $connectButton.addEventListener("click", handleClickConnect);
+      $disconnectButton.addEventListener("click", handleClickDisconnect);
+
+      $r.addEventListener("input", handleInput);
+      $g.addEventListener("input", handleInput);
+      $b.addEventListener("input", handleInput);
+
+      serial.init();
+    };
+
+    const handleClickConnect = async () => {
+      await serial.requestPort();
+    };
+
+    const handleClickDisconnect = async () => {
+      await serial.disconnect();
+    };
+
+    const handleInput = async () => {
+      const r = parseInt($r.value);
+      const g = parseInt($g.value);
+      const b = parseInt($b.value);
+
+      // Update value displays
+      $rValue.textContent = r;
+      $gValue.textContent = g;
+      $bValue.textContent = b;
+
+      // Update color preview
+      $colorPreview.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+      await serial.sendJSON({ r, g, b });
+    };
+
+    const updateDisplay = (value) => {
+      // Calculate percentage (assuming 12-bit ADC: 0-4095)
+      const percent = Math.round((value / 4095) * 100);
+      
+      $potmeterValues.innerHTML = `
+        <div style="margin-bottom: 15px;">
+          <strong>Potmeter Value:</strong> ${value} (${percent}%)
+          <div style="background: #ddd; height: 15px; border-radius: 8px; margin-top: 5px;">
+            <div style="background: #007bff; height: 100%; width: ${percent}%; border-radius: 8px; transition: width 0.05s;"></div>
+          </div>
+        </div>
+      `;
+    };
+
+    const displaySupportedState = () => {
+      if (serial.isSupported) {
+        $notSupported.style.display = "none";
+        $supported.style.display = "block";
+      } else {
+        $notSupported.style.display = "block";
+        $supported.style.display = "none";
+      }
+    };
+
+    const displayConnectionState = () => {
+      if (serial.isConnected) {
+        $notConnected.style.display = "none";
+        $connected.style.display = "block";
+      } else {
+        $notConnected.style.display = "block";
+        $connected.style.display = "none";
+      }
+    };
+
+    init();
+
+  </script>
+</body>
+</html>
