@@ -102,6 +102,14 @@ main {
     justify-content: center;
 }
 
+.second__screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+}
+
 h1 {
     font-family: helvetica-bold;
     font-size: var(--fontsize-xl);
@@ -150,6 +158,8 @@ h1 {
     background-color: var(--color-orange);
     outline: none;
 }
+
+
 
 .project__colors {
     display: flex;
