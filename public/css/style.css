@@ -1,3 +1,13 @@
+@font-face {
+    font-family: helvetica-bold;
+    src: url(../assets/fonts/Helvetica-Bold.ttf);
+}
+
+@font-face {
+    font-family: helvetica-regular;
+    src: url(../assets/fonts/Helvetica.ttf);
+}
+
 @keyframes pulse-opacity {
     0% {
         opacity: 0.5;
@@ -19,6 +29,7 @@
     --color-orange: #FF9960;
     --color-blue: #0EAFDC;
     --color-red: #FE2E44;
+    --color-green: #00C9A7;
     --color-grey-trans: #090909;
     --color-yellow: #FABD2D;
     --color-yellow-bright: #F2D801;
@@ -48,10 +59,10 @@
     /* 80px - top and bottom at sections */
 }
 
-body {
+/* body {
     overflow-x: hidden;
     overflow-y: hidden;
-}
+} */
 
 html {
     box-sizing: border-box;
@@ -72,4 +83,96 @@ html {
 img {
     max-width: 100%;
     height: auto;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--whitespace-xxl);
+    height: 100vh;
+    font-family: helvetica-regular;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.second__screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+}
+
+h1 {
+    font-family: helvetica-bold;
+    font-size: var(--fontsize-xl);
+    color: var(--color-black);
+    margin-bottom: var(--whitespace-base);
+}
+
+.score {
+    display: none;
+    font-family: helvetica-bold;
+    font-size: var(--fontsize-l);
+    color: var(--color-black);
+    margin-bottom: var(--whitespace-base);
+    text-align: center;
+}
+
+.project__descritption {
+    font-size: var(--fontsize-m);
+    color: var(--color-black);
+    margin-bottom: var(--whitespace-base);
+    text-align: center;
+    max-width: 60%;
+}
+
+.btn {
+    padding: 0.5em 1.5em;
+    font-size: var(--fontsize-l);
+    font-family: helvetica-bold, Arial, sans-serif;
+    color: var(--color-white);
+    background-color: var(--color-blue);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.07);
+    margin-bottom: var(--whitespace-xxl);
+    ;
+}
+
+.test__btn {
+    display: none;
+}
+
+.btn:hover,
+.btn:focus {
+    background-color: var(--color-orange);
+    outline: none;
+}
+
+
+
+.project__colors {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-black);
+    font-size: var(--fontsize-l);
+
+    width: 60%;
+    height: 10rem;
+    background-color: var(--color-white);
+    border: solid var(--color-grey-trans) 2px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.10);
 }
