@@ -48,7 +48,7 @@ const init = async () => {
         displayConnectionState();
     });
 
-    serial.addEventListener('data', (e) => {
+    serial.addEventListener('data', async (e) => {
         data = e.detail.data;
         try {
             const json = JSON.parse(data);
@@ -62,6 +62,9 @@ const init = async () => {
                 expectedColor = null;
                 testActive = false;
                 nextRound();
+            }
+            else if (testActive && expectedColor && json.btn !== expectedColor) {
+                await serial.sendJSON({ device: "buzzer" });
             }
         } catch (err) {
             console.log('Received raw:', data);
