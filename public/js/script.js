@@ -5,7 +5,7 @@ let $header;
 let $title;
 let $main;
 let $startBtn;
-let $testBtn;
+
 let $connectBtn;
 let $description;
 let $colorBox;
@@ -14,11 +14,12 @@ let $score;
 let data;
 let expectedColor = null;
 let testActive = false;
+let round = 0;
 
 
 //arrays
 let times = [];
-let colors = ["Red", "Green", "Blue"];
+let colors = ["red", "green", "blue"];
 
 //globals
 let startTime;
@@ -57,6 +58,7 @@ const init = async () => {
             if (testActive && expectedColor && json.btn === expectedColor) {
 
                 endTimer();
+                await serial.sendJSON({ device: "led", led: "none" });
                 $colorBox.style.backgroundColor = "var(--color-white)";
                 round++;
                 expectedColor = null;
@@ -104,7 +106,7 @@ const querySelectors = () => {
     $secondScreen = document.querySelector('.second__screen');
     $description = document.querySelector('.project__descritption');
     $startBtn = document.querySelector('.start__btn');
-    $testBtn = document.querySelector('.test__btn');
+
     $connectBtn = document.querySelector('.connect__btn');
     $colorBox = document.querySelector('.project__colors');
 
@@ -114,7 +116,7 @@ const eventListeners = () => {
     $connectBtn.addEventListener('click', (e) => { selectBoard(e); })
     $startBtn.addEventListener('click', (e) => { startTest(e); });
 }
-let round = 0;
+
 
 
 const selectBoard = async () => {
@@ -124,7 +126,7 @@ const selectBoard = async () => {
 const startTest = () => {
     $score.style.display = "none";
     $startBtn.style.display = "none";
-    $testBtn.style.display = "inline-block";
+
     round = 0;
     nextRound();
 }
@@ -132,41 +134,47 @@ const startTest = () => {
 const nextRound = () => {
     if (round >= 3) {
         console.log("Done!", times);
-        $testBtn.style.display = "none";
+
         $startBtn.style.display = "inline-block";
+        testActive = false;
         finalScore();
         return;
     }
-    $testBtn.disabled = true;
+
     const waitTime = randomTime();
 
-    setTimeout(() => {
+    setTimeout(async () => {
+        if (round >= 3) return; //preventing overlapping rounds started before round variables could be updated.
         startTimer();
-        expectedColor = changeColor();
+        expectedColor = await changeColor();
         testActive = true;
     }, waitTime);
 }
 
 
 
-const changeColor = () => {
+
+const changeColor = async () => {
     const index = Math.floor(Math.random() * 3);
     let color = colors[index];
 
     switch (color) {
-        case "Red":
+        case "red":
             $colorBox.style.backgroundColor = "var(--color-red)";
+            await serial.sendJSON({ device: "led", led: "red" });
             break;
 
-        case "Blue":
+        case "blue":
             $colorBox.style.backgroundColor = "var(--color-blue)";
+            await serial.sendJSON({ device: "led", led: "blue" });
             break;
 
-        case "Green":
+        case "green":
             $colorBox.style.backgroundColor = "var(--color-green)";
+            await serial.sendJSON({ device: "led", led: "green" });
             break;
     }
-    return color
+    return color;
 };
 
 const randomTime = () => {
