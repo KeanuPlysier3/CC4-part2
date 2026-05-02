@@ -66,12 +66,13 @@ export class WebSerial extends EventTarget {
     // Listen for new devices being connected
     navigator.serial.addEventListener("connect", (e) => {
       const port = e.target;
-      console.log("[WebSerial] Device connected", port.getInfo());
-      
+      // console.log("[WebSerial] Device connected", port.getInfo());
+
       if (this.#isMatchingPort(port)) {
         if (!this.#knownPorts.includes(port)) {
           this.#knownPorts.push(port);
         }
+        console.log(this.#knownPorts);
         // Auto-reconnect if enabled and not currently connected
         if (this.#options.autoReconnect && !this.#isConnected) {
           this.connect(port);
@@ -121,7 +122,7 @@ export class WebSerial extends EventTarget {
       const port = await navigator.serial.requestPort(
         filters.length > 0 ? { filters } : undefined
       );
-      
+
       return await this.connect(port);
     } catch (error) {
       if (error.name === "NotFoundError") {
@@ -304,7 +305,7 @@ export class WebSerial extends EventTarget {
 
   #isMatchingPort(port) {
     const info = port.getInfo();
-    
+
     // If no filter specified, match all ports
     if (!this.#options.usbVendorId && !this.#options.usbProductId) {
       return true;
