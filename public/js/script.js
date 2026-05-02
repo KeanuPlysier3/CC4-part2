@@ -5,11 +5,14 @@ let $header;
 let $title;
 let $main;
 let $startBtn;
+let $callibrateBtn;
 
 let $connectBtn;
 let $description;
 let $colorBox;
 let $score;
+let $body;
+let $scoreBoard;
 
 let data;
 let expectedColor = null;
@@ -20,7 +23,7 @@ let round = 0;
 //arrays
 let times = [];
 let colors = ["red", "green", "blue"];
-
+let scores = [];
 //globals
 let startTime;
 let endTime;
@@ -41,21 +44,29 @@ const init = async () => {
     displaySupported();
 
     if (!serial.isSupported) return;
-    serial.addEventListener("connect", () => {
+    serial.addEventListener("connect", async () => {
         displayConnectionState();
+        await serial.sendJSON({ device: "buzzer", message: "start" });
     });
 
     serial.addEventListener("disconnect", () => {
         displayConnectionState();
+
     });
 
     serial.addEventListener('data', async (e) => {
         data = e.detail.data;
         try {
             const json = JSON.parse(data);
-            console.log(json.btn)
-            // Only process button presses during an active test round
-            if (testActive && expectedColor && json.btn === expectedColor) {
+            console.log(json);
+            if (json.device === `photoRes`) {
+
+
+                // $main.classList.toggle("body--dark");
+
+                $body.classList.toggle("body--dark");
+            }
+            else if (testActive && expectedColor && json.btn === expectedColor) {
 
                 endTimer();
                 await serial.sendJSON({ device: "led", led: "none" });
@@ -66,12 +77,14 @@ const init = async () => {
                 nextRound();
             }
             else if (testActive && expectedColor && json.btn !== expectedColor) {
-                await serial.sendJSON({ device: "buzzer" });
+
+                await serial.sendJSON({ device: "buzzer", message: "wrong" });
             }
         } catch (err) {
             console.log('Received raw:', data);
         }
     });
+    serial.init();
 }
 
 
@@ -106,15 +119,39 @@ const querySelectors = () => {
     $secondScreen = document.querySelector('.second__screen');
     $description = document.querySelector('.project__descritption');
     $startBtn = document.querySelector('.start__btn');
+    $callibrateBtn = document.querySelector('.callibrate__btn');
+    $body = document.querySelector('body');
+    $scoreBoard = document.querySelector('.scoreboard__list');
 
     $connectBtn = document.querySelector('.connect__btn');
     $colorBox = document.querySelector('.project__colors');
+
+
+    if (JSON.parse(localStorage.getItem("scores"))) {
+        scores = JSON.parse(localStorage.getItem("scores"));
+    }
+    updateScoreBoard();
 
 
 }
 const eventListeners = () => {
     $connectBtn.addEventListener('click', (e) => { selectBoard(e); })
     $startBtn.addEventListener('click', (e) => { startTest(e); });
+    $callibrateBtn.addEventListener('click', async (e) => {
+        // Add spinner
+        if (!$callibrateBtn.querySelector('.spinner')) {
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner';
+            $callibrateBtn.appendChild(spinner);
+        }
+        $callibrateBtn.disabled = true;
+        await serial.sendJSON({ device: "photoRes" });
+        setTimeout(() => {
+            const spinner = $callibrateBtn.querySelector('.spinner');
+            if (spinner) spinner.remove();
+            $callibrateBtn.disabled = false;
+        }, 2000);
+    })
 }
 
 
@@ -124,6 +161,7 @@ const selectBoard = async () => {
 }
 
 const startTest = () => {
+    times = [];
     $score.style.display = "none";
     $startBtn.style.display = "none";
 
@@ -197,12 +235,34 @@ const endTimer = () => {
     times.push(totalTime);
 }
 
-const finalScore = () => {
+const updateScoreBoard = () => {
+    while ($scoreBoard.firstChild) { //keeps removing all first_children until none are left.
+        $scoreBoard.removeChild($scoreBoard.firstChild);
+    }
+
+    scores.map(score => {
+        let $score = document.createElement("li");
+        $score.textContent = `${score}s`;
+        $score.classList.add('scoreboard__score');
+        $scoreBoard.appendChild($score);
+    })
+}
+
+const finalScore = async () => {
+    await serial.sendJSON({ device: "buzzer", message: "victory" });
     $score.style.display = "block";
+    console.log(times);
     const average = times.reduce((sum, time) => sum + time, 0) / times.length;
     const seconds = average / 1000;
     const time = seconds.toFixed(2)
     $score.textContent = "avg reaction speed = " + time + "s";
+
+    scores.push(time);
+    scores.sort((a, b) => a - b); //from fastest to slowest
+    scores = scores.slice(0, 5); //keep top 5;
+    localStorage.setItem("scores", JSON.stringify(scores));
+    updateScoreBoard()
+
 }
 
 init();
