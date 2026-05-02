@@ -8,6 +8,49 @@
     margin-bottom: 0.5rem;
 }
 
+.scoreboard__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--whitespace-xs);
+    list-style: decimal inside;
+    font-family: helvetica-regular, Arial, sans-serif;
+}
+
+
+.scoreboard__list li::marker {
+    color: var(--color-yellow);
+    font-weight: bold;
+    font-size: .2em;
+
+}
+
+.title {
+    font-family: helvetica-bold, Arial, sans-serif;
+    font-size: var(--fontsize-l);
+    color: var(--color-black);
+    text-transform: uppercase;
+    animation: flash-title 1s linear infinite;
+    opacity: 0;
+}
+
+@keyframes flash-title {
+    0% {
+        opacity: 0;
+    }
+
+    40% {
+        opacity: 1;
+    }
+
+    60% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 .scoreboard {
     background: var(--color-black-trans);
     color: var(--color-yellow);
@@ -18,6 +61,11 @@
     font-family: helvetica-bold, Arial, sans-serif;
     align-self: flex-start;
     margin-right: 1rem;
+}
+
+.scoreboard h3 {
+    font-size: var(--fontsize-m);
+    margin-bottom: var(--whitespace-s);
 }
 
 @font-face {
@@ -159,6 +207,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 70%;
 
 }
 
@@ -183,7 +232,7 @@ h1 {
     text-align: center;
 }
 
-.project__descritption {
+.project__description {
     font-size: var(--fontsize-m);
 
     margin-bottom: var(--whitespace-base);
@@ -195,8 +244,8 @@ h1 {
     padding: 0.5em 1.5em;
     font-size: var(--fontsize-l);
     font-family: helvetica-bold, Arial, sans-serif;
-    color: var(--color-white);
-    background-color: var(--color-blue);
+    color: var(--color-yellow);
+    background-color: var(--color-black);
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -212,7 +261,9 @@ h1 {
 
 .btn:hover,
 .btn:focus {
-    background-color: var(--color-orange);
+    background-color: transparent;
+    border: solid var(--color-black) 3px;
+    -webkit-text-stroke: 2px var(--color-black);
     outline: none;
 }
 
@@ -265,7 +316,7 @@ h1 {
 
     width: 60%;
     height: 10rem;
-    background-color: var(--color-white);
+    background-color: transparent;
     border: solid var(--color-grey-trans) 2px;
     border-radius: 10px;
     box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.10);

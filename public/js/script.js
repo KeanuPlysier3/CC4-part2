@@ -4,7 +4,7 @@ let $secondScreen
 let $header;
 let $title;
 let $main;
-let $startBtn;
+// let $startBtn;
 let $callibrateBtn;
 
 let $connectBtn;
@@ -47,6 +47,7 @@ const init = async () => {
     serial.addEventListener("connect", async () => {
         displayConnectionState();
         await serial.sendJSON({ device: "buzzer", message: "start" });
+        await serial.sendJSON({ device: "leds" });
     });
 
     serial.addEventListener("disconnect", () => {
@@ -66,11 +67,16 @@ const init = async () => {
 
                 $body.classList.toggle("body--dark");
             }
+            // Only allow 'start' button to start the test if not active and at the beginning
+            else if (json.btn === "start") {
+                if (!testActive && round === 0) {
+                    startTest();
+                } // else: ignore 'start' during active test
+            }
             else if (testActive && expectedColor && json.btn === expectedColor) {
-
                 endTimer();
                 await serial.sendJSON({ device: "led", led: "none" });
-                $colorBox.style.backgroundColor = "var(--color-white)";
+                $colorBox.style.backgroundColor = "transparent";
                 round++;
                 expectedColor = null;
                 testActive = false;
@@ -112,13 +118,14 @@ const displaySupported = () => {
 
 
 const querySelectors = () => {
+    $title = document.querySelector(".title");
     $header = document.querySelector('header');
     $score = document.querySelector('.score');
     $title = document.querySelector('.title');
     $main = document.querySelector('main');
     $secondScreen = document.querySelector('.second__screen');
-    $description = document.querySelector('.project__descritption');
-    $startBtn = document.querySelector('.start__btn');
+    $description = document.querySelector('.project__description');
+    // $startBtn = document.querySelector('.start__btn');
     $callibrateBtn = document.querySelector('.callibrate__btn');
     $body = document.querySelector('body');
     $scoreBoard = document.querySelector('.scoreboard__list');
@@ -136,7 +143,7 @@ const querySelectors = () => {
 }
 const eventListeners = () => {
     $connectBtn.addEventListener('click', (e) => { selectBoard(e); })
-    $startBtn.addEventListener('click', (e) => { startTest(e); });
+    // $startBtn.addEventListener('click', (e) => { startTest(e); });
     $callibrateBtn.addEventListener('click', async (e) => {
         // Add spinner
         if (!$callibrateBtn.querySelector('.spinner')) {
@@ -161,11 +168,13 @@ const selectBoard = async () => {
 }
 
 const startTest = () => {
+    $title.style.display = "none"
     times = [];
     $score.style.display = "none";
-    $startBtn.style.display = "none";
+    $description.style.display = "none";
+    // $startBtn.style.display = "none";
 
-    round = 0;
+
     nextRound();
 }
 
@@ -173,7 +182,7 @@ const nextRound = () => {
     if (round >= 3) {
         console.log("Done!", times);
 
-        $startBtn.style.display = "inline-block";
+        // $startBtn.style.display = "inline-block";
         testActive = false;
         finalScore();
         return;
@@ -250,7 +259,9 @@ const updateScoreBoard = () => {
 
 const finalScore = async () => {
     await serial.sendJSON({ device: "buzzer", message: "victory" });
+    $title.style.display = "inline"
     $score.style.display = "block";
+    $description.style.display = "block";
     console.log(times);
     const average = times.reduce((sum, time) => sum + time, 0) / times.length;
     const seconds = average / 1000;
@@ -262,7 +273,7 @@ const finalScore = async () => {
     scores = scores.slice(0, 5); //keep top 5;
     localStorage.setItem("scores", JSON.stringify(scores));
     updateScoreBoard()
-
+    round = 0;
 }
 
 init();
