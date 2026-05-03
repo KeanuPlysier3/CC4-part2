@@ -1,4 +1,23 @@
 /* Audio icon in upper left */
+
+@keyframes flash-title {
+    0% {
+        opacity: 0;
+    }
+
+    40% {
+        opacity: 1;
+    }
+
+    60% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 .audio-icon {
     position: absolute;
     top: 40%;
@@ -47,29 +66,14 @@ header {
 .title {
     font-family: helvetica-bold, Arial, sans-serif;
     font-size: var(--fontsize-l);
-    color: var(--color-black);
+
     text-transform: uppercase;
     animation: flash-title 1s linear infinite;
     opacity: 0;
 }
 
-@keyframes flash-title {
-    0% {
-        opacity: 0;
-    }
 
-    40% {
-        opacity: 1;
-    }
 
-    60% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
 
 .scoreboard {
     background: var(--color-black-trans);
