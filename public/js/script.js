@@ -1,12 +1,12 @@
 import { WebSerial } from './serial.js';
+
 //dom elements
 let $secondScreen
 let $header;
 let $title;
 let $main;
-// let $startBtn;
-let $callibrateBtn;
 
+let $callibrateBtn;
 let $connectBtn;
 let $description;
 let $colorBox;
@@ -14,20 +14,18 @@ let $score;
 let $body;
 let $scoreBoard;
 
+//globals
 let data;
 let expectedColor = null;
 let testActive = false;
 let round = 0;
-
+let startTime;
+let endTime;
 
 //arrays
 let times = [];
 let colors = ["red", "green", "blue"];
 let scores = [];
-//globals
-let startTime;
-let endTime;
-
 
 //new webserial instance
 const serial = new WebSerial({
@@ -37,6 +35,7 @@ const serial = new WebSerial({
     autoConnect: true,
     autoReconnect: true,
 });
+
 
 const init = async () => {
     querySelectors();
@@ -94,7 +93,7 @@ const init = async () => {
 }
 
 
-
+//switching between different connection states
 const displayConnectionState = () => {
     if (serial.isConnected) {
         $secondScreen.style.display = "flex";
@@ -105,8 +104,7 @@ const displayConnectionState = () => {
     }
 }
 
-
-
+//warning message when webSerial is not supported
 const displaySupported = () => {
     if (serial.isSupported) {
         return
@@ -116,7 +114,7 @@ const displaySupported = () => {
     }
 }
 
-
+//handles all querySelectors
 const querySelectors = () => {
     $title = document.querySelector(".title");
     $header = document.querySelector('header');
@@ -141,9 +139,11 @@ const querySelectors = () => {
 
 
 }
+
+//handles all eventListeners of Dom Elements
 const eventListeners = () => {
     $connectBtn.addEventListener('click', (e) => { selectBoard(e); })
-    // $startBtn.addEventListener('click', (e) => { startTest(e); });
+
     $callibrateBtn.addEventListener('click', async (e) => {
         // Add spinner
         if (!$callibrateBtn.querySelector('.spinner')) {
@@ -161,12 +161,12 @@ const eventListeners = () => {
     })
 }
 
-
-
+//requesting communication with board.
 const selectBoard = async () => {
     await serial.requestPort();
 }
 
+//starts a test
 const startTest = () => {
     $title.style.display = "none"
     times = [];
@@ -178,6 +178,7 @@ const startTest = () => {
     nextRound();
 }
 
+//toggles between rounds
 const nextRound = () => {
     if (round >= 3) {
         console.log("Done!", times);
@@ -198,9 +199,7 @@ const nextRound = () => {
     }, waitTime);
 }
 
-
-
-
+//handles colorchanges of LED's.
 const changeColor = async () => {
     const index = Math.floor(Math.random() * 3);
     let color = colors[index];
@@ -224,6 +223,7 @@ const changeColor = async () => {
     return color;
 };
 
+//returns a random amount of time between 0 and 10s
 const randomTime = () => {
     const waitTime = (Math.random() * 10000);
     console.log("waitingTime: " + waitTime);
@@ -231,10 +231,12 @@ const randomTime = () => {
     return waitTime;
 }
 
+//grabs starting point of a round
 const startTimer = () => {
     startTime = performance.now();
 }
 
+//grabs end point of round, and stores total time.
 const endTimer = () => {
     endTime = performance.now();
 
@@ -244,6 +246,7 @@ const endTimer = () => {
     times.push(totalTime);
 }
 
+//updates the scores on the scoreBoard 
 const updateScoreBoard = () => {
     while ($scoreBoard.firstChild) { //keeps removing all first_children until none are left.
         $scoreBoard.removeChild($scoreBoard.firstChild);
@@ -257,6 +260,7 @@ const updateScoreBoard = () => {
     })
 }
 
+//calculates avg time, resets rounds, sets Localstorage.
 const finalScore = async () => {
     await serial.sendJSON({ device: "buzzer", message: "victory" });
     $title.style.display = "inline"
