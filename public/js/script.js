@@ -1,5 +1,7 @@
 import { WebSerial } from './serial.js';
 
+//paths
+const musicPath = 'assets/music/moodmode-no-copyright-music-201745.mp3';
 //dom elements
 let $secondScreen
 let $header;
@@ -13,6 +15,7 @@ let $colorBox;
 let $score;
 let $body;
 let $scoreBoard;
+let $icon;
 
 //globals
 let data;
@@ -21,6 +24,9 @@ let testActive = false;
 let round = 0;
 let startTime;
 let endTime;
+let audio;
+let maxPotentio = 4095;
+let vol;
 
 //arrays
 let times = [];
@@ -59,18 +65,25 @@ const init = async () => {
         try {
             const json = JSON.parse(data);
             console.log(json);
-            if (json.device === `photoRes`) {
 
-
-                // $main.classList.toggle("body--dark");
-
-                $body.classList.toggle("body--dark");
+            if (json.device === `potentio`) {
+                setVolume(json.value);
+                return
             }
+            if (json.device === `switch`) {
+                toggleMute();
+                return
+            }
+            if (json.device === `photoRes`) {
+                $body.classList.toggle("body--dark");
+                return
+            }
+
             // Only allow 'start' button to start the test if not active and at the beginning
             else if (json.btn === "start") {
                 if (!testActive && round === 0) {
                     startTest();
-                } // else: ignore 'start' during active test
+                }
             }
             else if (testActive && expectedColor && json.btn === expectedColor) {
                 endTimer();
@@ -123,10 +136,10 @@ const querySelectors = () => {
     $main = document.querySelector('main');
     $secondScreen = document.querySelector('.second__screen');
     $description = document.querySelector('.project__description');
-    // $startBtn = document.querySelector('.start__btn');
     $callibrateBtn = document.querySelector('.callibrate__btn');
     $body = document.querySelector('body');
     $scoreBoard = document.querySelector('.scoreboard__list');
+    $icon = document.querySelector(".audio-icon");
 
     $connectBtn = document.querySelector('.connect__btn');
     $colorBox = document.querySelector('.project__colors');
@@ -142,6 +155,25 @@ const querySelectors = () => {
 
 //handles all eventListeners of Dom Elements
 const eventListeners = () => {
+    window.addEventListener('DOMContentLoaded', () => {
+        audio = new Audio(musicPath);
+        audio.loop = true;
+        audio.volume = 0.5;
+
+
+        //user probs has to interact first.
+        audio.play().catch(() => {
+
+            console.log('Autoplay was blocked. Music will play on first user interaction.');
+            const startMusic = () => {
+                audio.play();
+                $icon.removeEventListener('click', startMusic);
+                $icon.style.opacity = "1";
+            };
+            $icon.addEventListener('click', startMusic);
+        });
+    });
+
     $connectBtn.addEventListener('click', (e) => { selectBoard(e); })
 
     $callibrateBtn.addEventListener('click', async (e) => {
@@ -278,6 +310,19 @@ const finalScore = async () => {
     localStorage.setItem("scores", JSON.stringify(scores));
     updateScoreBoard()
     round = 0;
+}
+
+const setVolume = (value) => {
+    if (value <= 60) {
+        vol = 0;
+    } else {
+        vol = value / maxPotentio;
+    }
+    audio.volume = vol;
+}
+
+const toggleMute = () => {
+    audio.volume === 0 ? audio.volume = vol : audio.volume = 0;
 }
 
 init();

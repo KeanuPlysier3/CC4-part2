@@ -1,3 +1,23 @@
+/* Audio icon in upper left */
+.audio-icon {
+    position: absolute;
+    top: 40%;
+    left: 1.2rem;
+    width: 40px;
+    height: 40px;
+    z-index: 200;
+    opacity: 0.5;
+    margin-top: 0.5rem;
+}
+
+.audio-icon:hover {
+    cursor: pointer;
+}
+
+header {
+    position: relative;
+}
+
 .scoreboard-row {
     display: flex;
     flex-direction: row;
